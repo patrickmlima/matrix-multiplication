@@ -7,12 +7,12 @@
 // name of the kernel function
 #define KERNEL_FUNC "multiply_matrix"
 // number of lines of the first matrix
-#define LM1 1000
+#define LM1 50
 // number of columns of the first matrix and number of
 // the second matrix
-#define CM 1000
+#define CM 10
 // number of columns of the second matrix
-#define CM2 1000
+#define CM2 70
 
 /**
 *  Find a GPU or CPU (device) which is available for the host returning
@@ -169,17 +169,15 @@ int main() {
    // variables to the number of threads in one block
    // and total numbers of threads, respectively
    unsigned long int local_size, global_size;
-   // the number of groups to be created
-   unsigned long num_groups;
 
-   // The data matrixes
+   // The data matrices
    float **m1=(float**)malloc(sizeof(float*)*LM1);
    float **m2=(float**)malloc(sizeof(float*)*CM);
    float **res=(float**)malloc(sizeof(float*)*LM1);
    // the vector which will be send to the devices
    cl_mem d_m1, d_m2, d_res;
 
-   // allocates and initializes the data matrixes
+   // allocates and initializes the data matrices
    for(i=0;i<LM1;++i) {
       m1[i]=(float*)malloc(sizeof(float)*CM);
       for(j=0;j<CM;++j)
@@ -209,13 +207,13 @@ int main() {
    // creates a program and build it
    program = build_program(context, device, PROGRAM_FILE);
 
-   // Create the data buffers
+   // Create the data buffers size
    unsigned long int m1size = sizeof(float)*LM1*CM;
    unsigned long int m2size = sizeof(float)*CM*CM2;
    unsigned long int res_size = sizeof(float)*LM1*CM2;
 
    float *vm1, *vm2, *vres;
-   // Make a vector with each of the allocated matrixes
+   // Make a vector with each of the allocated matrices
    vm1 = matrix_to_vector(m1,(int)LM1,(int)CM, NULL);
    vm2 = matrix_to_vector(m2,(int)CM,(int)CM2, NULL);
    vres = matrix_to_vector(res,(int)LM1,(int)CM2,NULL);
@@ -224,9 +222,6 @@ int main() {
    global_size = LM1*CM2;
    // defines the number of threads in one block
    local_size = CM2;
-   // with this above two values, it's possible define
-   // the number of blocks
-   num_groups = global_size/local_size;
 
    // create the data buffers to be sent to devices
    d_m1 = clCreateBuffer(context, CL_MEM_READ_ONLY |
@@ -283,17 +278,17 @@ int main() {
       exit(1);
    }
 
-   // transforms the result to a matrix and print the values
-   // printf("====================================\n");
-   // res = vector_to_matrix(vres,(unsigned int)LM1*CM2,CM2);
-   // for(i=0;i<LM1;++i) {
-   //    for(j=0;j<CM2;++j)
-   //       printf("%f ", res[i][j]);
-   //    printf("\n");
-   // }
-   // printf("====================================\n");
-
    printf("\n---finished---\n");
+
+   // transforms the result to a matrix and print the values
+   printf("====================================\n");
+   res = vector_to_matrix(vres,(unsigned int)LM1*CM2,CM2);
+   for(i=0;i<LM1;++i) {
+      for(j=0;j<CM2;++j)
+         printf("%.2f ", res[i][j]);
+      printf("\n");
+   }
+   printf("====================================\n");
 
    // Deallocating resources
    clReleaseKernel(kernel);
